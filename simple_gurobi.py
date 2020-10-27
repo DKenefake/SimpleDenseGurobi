@@ -169,15 +169,15 @@ def solve_qp(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndar
                     verbose=False,
                     get_duals=True) -> Optional[SolverOutput]:
     """
-    This is the breakout for solving mixed integer quadratic programs with gruobi
+    This is the breakout for solving quadratic programs with gruobi
 
     The Mixed Integer Quadratic program programming problem
-        min_{xy} 1/2 [xy]^T*Q*[xy] + c^T*[xy]
+        min_{x} 1/2 x^T*Q*x + c^T*x
 
-        s.t.   A[xy] <= b
-              Aeq*[xy] = beq
+        s.t.   A*x <= b
+              Aeq*x = beq
 
-              xy is the parameter vector of mixed real and binary inputs
+              x is the parameter vector of real inputs
 
     :param Q: Square matrix, can be None
     :param c: Column Vector, can be None
