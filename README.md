@@ -1,5 +1,5 @@
 # SimpleDenseGurobi
-This is a small library to simplify solving dense optimization problems with Gurobi in Python. This has been designed to interface optimally with Gurobi such that there is only a minimal amount of overhead with interacting with the solver, and uses the fastest ways to interface with the Gurobi subsystem.
+This is a small library to simplify solving dense optimization problems with [Gurobi](https://www.gurobi.com/) in Python. This has been designed to interface  with Gurobi such that there is minimal overhead with interacting with the solver. This is not ment for solving large sparse optimization problems, but to solve many small optimization problems quickley. 
 
 SimpleDenseGurobi considers problems of the following form.
 
