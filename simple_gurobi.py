@@ -61,7 +61,8 @@ def get_program_parameters(Q: Optional[numpy.ndarray], c: Optional[numpy.ndarray
 
     return num_v, num_c
 
-def solve_miqp(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray,
+def solve_miqp_gurobi(Q: numpy.ndarray = None, c: numpy.ndarray = None, A: numpy.ndarray = None,
+                      b: numpy.ndarray = None,
                       equality_constraints: Iterable[int] = None,
                       bin_vars: Iterable[int] = None, verbose: bool = False,
                       get_duals: bool = True) -> Optional[SolverOutput]:
@@ -93,7 +94,7 @@ def solve_miqp(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: numpy.nd
     model = gp.Model()
 
     if not verbose:
-        model.setParam("OutputFlag", 0)
+       model.setParam("OutputFlag", 0)
 
     if equality_constraints is None:
         equality_constraints = []
@@ -104,10 +105,14 @@ def solve_miqp(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: numpy.nd
     if len(bin_vars) == 0:
         model.setParam("Method", 0)
 
-    model.setParam("Quad", 1)
-    model.setParam("FeasibilityTol", 10 ** (-9))
-    model.setParam("OptimalityTol", 10 ** (-9))
-    model.setParam("Presolve", 0)
+    if len(bin_vars) == 0 and Q is None:
+        model.setParam("Method", 0)
+        model.setParam("Quad", 0)
+
+    # model.setParam('NumericFocus', 3)
+    # model.setParam("FeasibilityTol", 10 ** (-9))
+    # model.setParam("OptimalityTol", 10 ** (-9))
+    # model.setParam("Presolve", 2)
 
     # define num variables and num constraints variables
     num_vars, num_constraints = get_program_parameters(Q, c, A, b)
@@ -119,21 +124,28 @@ def solve_miqp(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: numpy.nd
     x = model.addMVar(num_vars, lb=-GRB.INFINITY, ub=GRB.INFINITY, vtype=var_types)
 
     if num_constraints != 0:
-        sense = numpy.chararray(num_constraints)
-        # sense.fill(GRB.LESS_EQUAL)
-        sense[equality_constraints] = GRB.EQUAL
-        inequality = [i for i in range(num_constraints) if i not in equality_constraints]
-        sense[inequality] = GRB.LESS_EQUAL
+        # sense = numpy.chararray(num_constraints)
+        sense = [GRB.LESS_EQUAL for _ in range(num_constraints)]
+        for i in equality_constraints:
+            sense[i] = GRB.EQUAL
 
-        model.addMConstrs(A, x, sense, b)
+        # sense.fill(GRB.LESS_EQUAL)
+        # sense[equality_constraints] = GRB.EQUAL
+        # inequality = [i for i in range(num_constraints) if i not in equality_constraints]
+        # sense[inequality] = GRB.LESS_EQUAL
+
+        model.addMConstr(A, x, sense, b)
 
     objective = 0
 
-    if Q is not None:
-        objective += .5 * (x @ Q @ x)
+    if Q is not None and c is None:
+        objective = .5 * (x @ Q @ x)
 
-    if c is not None:
-        objective += c.flatten() @ x
+    if c is not None and Q is None:
+        objective = c.flatten() @ x
+
+    if Q is not None and c is not None:
+        objective = .5 * (x @ Q @ x) + c.flatten() @ x
 
     model.setObjective(objective, sense=GRB.MINIMIZE)
 
@@ -159,25 +171,25 @@ def solve_miqp(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: numpy.nd
                 sol.dual = numpy.array(model.getAttr("Pi"))
 
         sol.slack = numpy.array(model.getAttr("Slack"))
-        sol.active_set = numpy.where((A @ sol.sol.flatten() - b.flatten()) ** 2 < 10 ** -12)
+        sol.active_set = numpy.where((A @ sol.sol.flatten() - b.flatten()) ** 2 < 10 ** -12)[0]
 
     return sol
 
 
-def solve_qp(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray,
+def solve_qp_gurobi(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray,
                     equality_constraints: Iterable[int] = None,
                     verbose=False,
                     get_duals=True) -> Optional[SolverOutput]:
     """
-    This is the breakout for solving quadratic programs with gruobi
+    This is the breakout for solving mixed integer quadratic programs with gruobi
 
     The Mixed Integer Quadratic program programming problem
-        min_{x} 1/2 x^T*Q*x + c^T*x
+        min_{xy} 1/2 [xy]^T*Q*[xy] + c^T*[xy]
 
-        s.t.   A*x <= b
-              Aeq*x = beq
+        s.t.   A[xy] <= b
+              Aeq*[xy] = beq
 
-              x is the parameter vector of real inputs
+              xy is the parameter vector of mixed real and binary inputs
 
     :param Q: Square matrix, can be None
     :param c: Column Vector, can be None
@@ -189,10 +201,12 @@ def solve_qp(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndar
 
     :return: A dictionary of the solver outputs, or none if infeasible or unbounded. \\n output['sol'] = primal variables, output['dual'] = dual variables, output['obj'] = objective value, output['const'] = slacks, output['active'] = active constraints.
     """
-    return solve_miqp(Q, c, A, b, equality_constraints, verbose=verbose, get_duals=get_duals)
+    return solve_miqp_gurobi(Q=Q, c=c, A=A, b=b, equality_constraints=equality_constraints, verbose=verbose,
+                             get_duals=get_duals)
+
 
 # noinspection PyArgumentList,PyArgumentList,PyArgumentList,PyArgumentList,PyArgumentList,PyArgumentList
-def solve_lp(c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray, equality_constraints=None, verbose=False,
+def solve_lp_gurobi(c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray, equality_constraints=None, verbose=False,
                     get_duals=True) -> Optional[SolverOutput]:
     """
     This is the breakout for solving mixed integer linear programs with gruobi, This is feed directly into the
@@ -224,11 +238,11 @@ def solve_lp(c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray, equality_cons
     if numpy.size(A) == 0 or numpy.size(b) == 0:
         return None
 
-    return solve_miqp(None, c, A, b, equality_constraints=equality_constraints, bin_vars=None, verbose=verbose,
+    return solve_miqp_gurobi(c=c, A=A, b=b, equality_constraints=equality_constraints, verbose=verbose,
                              get_duals=get_duals)
 
 
-def solve_milp(c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray,
+def solve_milp_gurobi(c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray,
                       equality_constraints: Iterable[int] = None,
                       bin_vars: Iterable[int] = None, verbose=False, get_duals=True) -> Optional[
     SolverOutput]:
@@ -260,5 +274,5 @@ def solve_milp(c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray,
     if numpy.size(A) == 0 or numpy.size(b) == 0:
         return None
 
-    return solve_miqp(Q=None, c=c, A=A, b=b, equality_constraints=equality_constraints, bin_vars=bin_vars,
+    return solve_miqp_gurobi(c=c, A=A, b=b, equality_constraints=equality_constraints, bin_vars=bin_vars,
                              verbose=verbose, get_duals=get_duals)
