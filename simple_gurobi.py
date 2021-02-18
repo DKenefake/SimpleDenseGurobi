@@ -182,12 +182,12 @@ def solve_qp_gurobi(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: num
     This is the breakout for solving mixed integer quadratic programs with gruobi
 
     The Mixed Integer Quadratic program programming problem
-        min_{xy} 1/2 [xy]^T*Q*[xy] + c^T*[xy]
+        min_{xy} 1/2 x^T@Q@x + c^T@x
 
-        s.t.   A[xy] <= b
-              Aeq*[xy] = beq
+        s.t.  A@x <= b
+              Aeq@x = beq
 
-              xy is the parameter vector of mixed real and binary inputs
+              x is a real vector
 
     :param Q: Square matrix, can be None
     :param c: Column Vector, can be None
@@ -210,13 +210,13 @@ def solve_lp_gurobi(c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray, equali
     This is the breakout for solving mixed integer linear programs with gruobi, This is feed directly into the
     MIQP solver that is defined in the same file.
 
-    The Mixed Integer Linear program programming problem
-        min_{xy} c^T*[xy]
+    The Linear program programming problem
+        min_{x} c^T@x
 
-        s.t.    A[xy] <= b
-                Aeq*[xy] = beq
+        s.t.    A@x <= b
+                Aeq@x = beq
 
-                xy is the parameter vector of mixed real and binary inputs
+                x is a real vector
 
     :param c: Column Vector, can be None
     :param A: Constraint LHS matrix, can be None
