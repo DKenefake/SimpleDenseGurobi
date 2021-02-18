@@ -13,16 +13,16 @@ from gurobipy import GRB
 @dataclass
 class SolverOutput:
     """
-    Solver information object
+    Solver information object, this is the intermediary object that hold the information from the optimizer.
 
-    Members:
     obj: objective value of the optimal solution \n
+
     sol: x*, numpy.ndarray \n
 
-    Optional Parameters -> None or numpy.ndarray type
-
     slack: the slacks associated with every constraint \n
+
     active_set: the active set of the solution, including strongly and weakly active constraints \n
+
     dual: the lagrange multipliers associated with the problem\n
 
     """
@@ -45,7 +45,18 @@ class SolverOutput:
 
 def get_program_parameters(Q: Optional[numpy.ndarray], c: Optional[numpy.ndarray], A: Optional[numpy.ndarray],
                            b: Optional[numpy.ndarray]):
-    """ Given a set of possibly None optimization parameters determine the number of variables and constraints """
+    """
+    Given a set of optimization constraints, objectives, ect determine the number of variables and number of constraints (if any).
+
+    This is primarily a helper function, there is no reason for the user to call this function other then for fun.
+
+    :param Q: Quadratic objective term
+    :param c: Linear objective term
+    :param A: LHS Matrix of constraints
+    :param b: RHS Matrix of constraints
+    :return: A tuple of the number of variables and constraints (in that order)
+    """
+
     num_c = 0
     num_v = 0
 
@@ -67,26 +78,25 @@ def solve_miqp_gurobi(Q: numpy.ndarray = None, c: numpy.ndarray = None, A: numpy
                       bin_vars: Iterable[int] = None, verbose: bool = False,
                       get_duals: bool = True) -> Optional[SolverOutput]:
     """
-    This is the breakout for solving mixed integer quadratic programs with gruobi
-
-    The Mixed Integer Quadratic program programming problem
+    The Mixed Integer Quadratic programming problem
         min_{xy} 1/2 [xy]^T*Q*[xy] + c^T*[xy]
 
-        s.t.   A[xy] <= b
-               Aeq*[xy] = beq
+        s.t.    A[xy] <= b
 
-               xy is the parameter vector of mixed real and binary inputs
+                Aeq*[xy] = beq
+
+                xy is the parameter vector of mixed real and binary inputs
 
     :param Q: Square matrix, can be None
     :param c: Column Vector, can be None
     :param A: Constraint LHS matrix, can be None
     :param b: Constraint RHS matrix, can be None
-    :param equality_constraints: List of Equality constraints
+    :param equality_constraints: List of equality constraints indices
     :param bin_vars: List of binary variable indices
     :param verbose: Flag for output of underlying solver, default False
     :param get_duals: Flag for returning dual variable of problem, default True (false for all mixed integer models)
 
-    :return: A SolverOuput Object
+    :return: A SolverOutput Object
     """
 
     model = gp.Model()
@@ -178,26 +188,25 @@ def solve_qp_gurobi(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: num
                     equality_constraints: Iterable[int] = None,
                     verbose=False,
                     get_duals=True) -> Optional[SolverOutput]:
-    """
-    This is the breakout for solving mixed integer quadratic programs with gruobi
+    r"""
+    The Quadratic programming problem
+        min_{x} 1/2 x^T@Q@x + c^T@x
 
-    The Mixed Integer Quadratic program programming problem
-        min_{xy} 1/2 x^T@Q@x + c^T@x
+        s.t.    A@x <= b
 
-        s.t.  A@x <= b
-              Aeq@x = beq
+                Aeq@x = beq
 
-              x is a real vector
+                x is a real vector
 
     :param Q: Square matrix, can be None
     :param c: Column Vector, can be None
     :param A: Constraint LHS matrix, can be None
     :param b: Constraint RHS matrix, can be None
-    :param equality_constraints: List of Equality constraints
+    :param equality_constraints: List of equality constraints indices
     :param verbose: Flag for output of underlying solver, default False
     :param get_duals: Flag for returning dual variable of problem, default True (false for all mixed integer models)
 
-    :return: A SolverOuput Object
+    :return: A SolverOutput Object
     """
     return solve_miqp_gurobi(Q=Q, c=c, A=A, b=b, equality_constraints=equality_constraints, verbose=verbose,
                              get_duals=get_duals)
@@ -207,13 +216,11 @@ def solve_qp_gurobi(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: num
 def solve_lp_gurobi(c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray, equality_constraints=None, verbose=False,
                     get_duals=True) -> Optional[SolverOutput]:
     """
-    This is the breakout for solving mixed integer linear programs with gruobi, This is feed directly into the
-    MIQP solver that is defined in the same file.
-
-    The Linear program programming problem
+    The Linear programming problem
         min_{x} c^T@x
 
         s.t.    A@x <= b
+
                 Aeq@x = beq
 
                 x is a real vector
@@ -221,11 +228,11 @@ def solve_lp_gurobi(c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray, equali
     :param c: Column Vector, can be None
     :param A: Constraint LHS matrix, can be None
     :param b: Constraint RHS matrix, can be None
-    :param equality_constraints: List of Equality constraints
+    :param equality_constraints: List of equality constraints indices
     :param verbose: Flag for output of underlying solver, default False
     :param get_duals: Flag for returning dual variable of problem, default True
 
-    :return: A SolverOuput Object
+    :return: A SolverOutput Object
     """
 
     # Simple short cuts that indicate a unbounded or infeasible LP
@@ -245,21 +252,19 @@ def solve_milp_gurobi(c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray,
                       bin_vars: Iterable[int] = None, verbose=False, get_duals=True) -> Optional[
     SolverOutput]:
     """
-    This is the breakout for solving mixed integer linear programs with gruobi, This is feed directly into the
-    MIQP solver that is defined in the same file.
-
-    The Mixed Integer Linear program programming problem
+    The Mixed Integer Linear programming problem
         min_{xy} c^T*[xy]
 
-        s.t.   A[xy] <= b
-               Aeq*[xy] = beq
+        s.t.    A[xy] <= b
+
+                Aeq*[xy] = beq
 
                 xy is the parameter vector of mixed real and binary inputs
 
     :param c: Column Vector, can be None
     :param A: Constraint LHS matrix, can be None
     :param b: Constraint RHS matrix, can be None
-    :param equality_constraints: List of Equality constraints
+    :param equality_constraints: List of equality constraints indices
     :param bin_vars: List of binary variable indices
     :param verbose: Flag for output of underlying solver, default False
     :param get_duals: Flag for returning dual variable of problem, default True (false for all mixed integer models)
