@@ -2,9 +2,8 @@ name: simpledensegurobi
 channels:
   - conda-forge
   - defaults
-  - gurobi 
+  - http://conda.anaconda.org/gurobi
 dependencies:
   - numpy
   - python=3.7
   - gurobi 
-  - gurobipy
