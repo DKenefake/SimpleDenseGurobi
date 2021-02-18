@@ -1,0 +1,14 @@
+name: birdman
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - pandas
+  - numpy
+  - python=3.7
+  - python-language-server
+  - xarray
+  - patsy
+  - dask
+  - biom-format
