@@ -86,9 +86,7 @@ def solve_miqp_gurobi(Q: numpy.ndarray = None, c: numpy.ndarray = None, A: numpy
     :param verbose: Flag for output of underlying solver, default False
     :param get_duals: Flag for returning dual variable of problem, default True (false for all mixed integer models)
 
-    :return: A dictionary of the solver outputs, or none if infeasible or unbounded. \\n output['sol'] = primal
-    variables, output['dual'] = dual variables, output['obj'] = objective value, output['const'] = slacks,
-    output['active'] = active constraints.
+    :return: A SolverOuput Object
     """
 
     model = gp.Model()
@@ -199,7 +197,7 @@ def solve_qp_gurobi(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: num
     :param verbose: Flag for output of underlying solver, default False
     :param get_duals: Flag for returning dual variable of problem, default True (false for all mixed integer models)
 
-    :return: A dictionary of the solver outputs, or none if infeasible or unbounded. \\n output['sol'] = primal variables, output['dual'] = dual variables, output['obj'] = objective value, output['const'] = slacks, output['active'] = active constraints.
+    :return: A SolverOuput Object
     """
     return solve_miqp_gurobi(Q=Q, c=c, A=A, b=b, equality_constraints=equality_constraints, verbose=verbose,
                              get_duals=get_duals)
@@ -227,7 +225,7 @@ def solve_lp_gurobi(c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray, equali
     :param verbose: Flag for output of underlying solver, default False
     :param get_duals: Flag for returning dual variable of problem, default True
 
-    :return: A dictionary of the solver outputs, or none if infeasible or unbounded. output['sol'] = primal variables, output['dual'] = dual variables, output['obj'] = objective value, output['const'] = slacks, output['active'] = active constraints.
+    :return: A SolverOuput Object
     """
 
     # Simple short cuts that indicate a unbounded or infeasible LP
@@ -266,7 +264,7 @@ def solve_milp_gurobi(c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray,
     :param verbose: Flag for output of underlying solver, default False
     :param get_duals: Flag for returning dual variable of problem, default True (false for all mixed integer models)
 
-    :return: A dictionary of the solver outputs, or none if infeasible or unbounded. output['sol'] = primal variables, output['dual'] = dual variables, output['obj'] = objective value, output['const'] = slacks, output['active'] = active constraints.
+    :return: A SolverOuput Object
     """
     if A is None or b is None:
         return None
