@@ -1,14 +1,10 @@
-name: birdman
+name: simpledensegurobi
 channels:
-  - bioconda
   - conda-forge
   - defaults
+  - gurobi 
 dependencies:
-  - pandas
   - numpy
   - python=3.7
-  - python-language-server
-  - xarray
-  - patsy
-  - dask
-  - biom-format
+  - gurobi 
+  - gurobipy
