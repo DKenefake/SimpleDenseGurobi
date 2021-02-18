@@ -1,6 +1,8 @@
 # SimpleDenseGurobi
 This is a small library to simplify solving dense optimization problems with [Gurobi](https://www.gurobi.com/) in Python. This has been designed to interface  with Gurobi such that there is minimal overhead with interacting with the solver. This is not ment for solving large sparse optimization problems, but to solve many small optimization problems quickley. 
 
+Online Documentation can be found at [Read the Docs!](https://simpledensegurobi.readthedocs.io/en/latest/index.html)
+
 SimpleDenseGurobi considers problems of the following form.
 
 <img src="https://github.com/DKenefake/SimpleDenseGurobi/blob/main/problem%20definition.svg">
