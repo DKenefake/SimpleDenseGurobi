@@ -34,6 +34,12 @@ class SolverOutput:
     dual: Optional[numpy.ndarray]
 
     def __eq__(self, other):
+        """
+        Checks if two Solver outputs are equal to each other
+
+        :param other: Another SolverOutput object
+        :return: True if they are equal, false otherwise
+        """
         if not isinstance(other, SolverOutput):
             return NotImplemented
 
@@ -77,15 +83,19 @@ def solve_miqp_gurobi(Q: numpy.ndarray = None, c: numpy.ndarray = None, A: numpy
                       equality_constraints: Iterable[int] = None,
                       bin_vars: Iterable[int] = None, verbose: bool = False,
                       get_duals: bool = True) -> Optional[SolverOutput]:
-    """
+    r"""
     The Mixed Integer Quadratic programming problem
-        min_{xy} 1/2 [xy]^T*Q*[xy] + c^T*[xy]
 
-        s.t.    A[xy] <= b
+    .. math::
 
-                Aeq*[xy] = beq
+        \min_{x} \frac{1}{2} [x y]^T Q [x y] + c^T [x y]\\
 
-                xy is the parameter vector of mixed real and binary inputs
+    .. math::
+
+        \begin{align*}
+        \text{s.t. }    A[xy] &\leq b\\
+                A_{eq}[xy] &= b_{eq}
+        \end{align*}
 
     :param Q: Square matrix, can be None
     :param c: Column Vector, can be None
@@ -190,13 +200,17 @@ def solve_qp_gurobi(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: num
                     get_duals=True) -> Optional[SolverOutput]:
     r"""
     The Quadratic programming problem
-        min_{x} 1/2 x^T@Q@x + c^T@x
 
-        s.t.    A@x <= b
+    .. math::
 
-                Aeq@x = beq
+        \min_{x} \frac{1}{2} x^T Qx + c^T x\\
 
-                x is a real vector
+    .. math::
+
+        \begin{align*}
+        \text{s.t. }    Ax &\leq b\\
+                A_{eq}x &= b_{eq}
+        \end{align*}
 
     :param Q: Square matrix, can be None
     :param c: Column Vector, can be None
@@ -215,15 +229,19 @@ def solve_qp_gurobi(Q: numpy.ndarray, c: numpy.ndarray, A: numpy.ndarray, b: num
 # noinspection PyArgumentList,PyArgumentList,PyArgumentList,PyArgumentList,PyArgumentList,PyArgumentList
 def solve_lp_gurobi(c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray, equality_constraints=None, verbose=False,
                     get_duals=True) -> Optional[SolverOutput]:
-    """
+    r"""
     The Linear programming problem
-        min_{x} c^T@x
 
-        s.t.    A@x <= b
+    .. math::
 
-                Aeq@x = beq
+        \min_{x} c^T x\\
 
-                x is a real vector
+    .. math::
+
+        \begin{align*}
+        \text{s.t. }    Ax &\leq b\\
+                A_{eq}x &= b_{eq}
+        \end{align*}
 
     :param c: Column Vector, can be None
     :param A: Constraint LHS matrix, can be None
@@ -251,15 +269,19 @@ def solve_milp_gurobi(c: numpy.ndarray, A: numpy.ndarray, b: numpy.ndarray,
                       equality_constraints: Iterable[int] = None,
                       bin_vars: Iterable[int] = None, verbose=False, get_duals=True) -> Optional[
     SolverOutput]:
-    """
-    The Mixed Integer Linear programming problem
-        min_{xy} c^T*[xy]
+    r"""
+    Solves the Mixed Integer Linear (MIL) programming problem
 
-        s.t.    A[xy] <= b
+    .. math::
 
-                Aeq*[xy] = beq
+        \min_{xy} c^T[xy]
 
-                xy is the parameter vector of mixed real and binary inputs
+    .. math::
+
+        \begin{align*}
+        \text{s.t. }  A[xy] &\leq b\\
+         A_{eq}[xy] &= b_{eq}
+        \end{align*}
 
     :param c: Column Vector, can be None
     :param A: Constraint LHS matrix, can be None
